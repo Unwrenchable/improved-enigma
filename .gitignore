@@ -141,3 +141,12 @@ Thumbs.db
 # Test files
 test_output/
 examples/output/
+
+# Web app uploads and outputs
+uploads/
+outputs/
+
+# PyInstaller build files
+*.spec
+build/
+dist/

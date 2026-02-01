@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laser Engraving File Converter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔥 Laser Engraving File Converter</h1>
+            <p class="subtitle">Convert images and designs for laser engraving - Accessible from any device</p>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <section class="card upload-section">
+                <h2>📁 Upload Your File</h2>
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📤</div>
+                    <p class="upload-text">Drag & drop your file here</p>
+                    <p class="upload-subtext">or click to browse</p>
+                    <input type="file" id="fileInput" accept=".svg,.dxf,.ai,.eps,.png,.jpg,.jpeg,.bmp,.tiff,.tif" hidden>
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        Choose File
+                    </button>
+                </div>
+                <div id="fileInfo" class="file-info" style="display: none;">
+                    <p><strong>Selected:</strong> <span id="fileName"></span></p>
+                    <p><strong>Type:</strong> <span id="fileType"></span></p>
+                </div>
+            </section>
+
+            <!-- Conversion Options -->
+            <section class="card options-section" id="optionsSection" style="display: none;">
+                <h2>⚙️ Conversion Options</h2>
+                
+                <div class="form-group">
+                    <label for="outputType">Output Format:</label>
+                    <select id="outputType" class="form-control">
+                        <option value="svg">SVG (Vector - for precise cuts and lines)</option>
+                        <option value="png">PNG (Raster - for photo engraving)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="useCase">Use Case:</label>
+                    <select id="useCase" class="form-control">
+                        <option value="general">General Purpose</option>
+                        <option value="signage">Signage</option>
+                        <option value="jewelry">Jewelry</option>
+                        <option value="personalization">Personalization</option>
+                        <option value="photos">Photos</option>
+                        <option value="industrial">Industrial</option>
+                        <option value="arts">Arts & Crafts</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="dpiGroup">
+                    <label for="dpi">DPI (for PNG output):</label>
+                    <input type="number" id="dpi" class="form-control" value="300" min="100" max="1200" step="100">
+                    <small>Recommended: 300-600 DPI</small>
+                </div>
+
+                <div class="form-group" id="thresholdGroup" style="display: none;">
+                    <label for="threshold">Tracing Threshold:</label>
+                    <input type="range" id="threshold" class="form-control-range" value="128" min="0" max="255">
+                    <small>Adjust for better black/white conversion (0-255)</small>
+                </div>
+
+                <button class="btn btn-success btn-large" id="convertBtn" onclick="convertFile()">
+                    🚀 Convert File
+                </button>
+            </section>
+
+            <!-- Results Section -->
+            <section class="card results-section" id="resultsSection" style="display: none;">
+                <h2>✅ Conversion Complete!</h2>
+                
+                <div class="result-info">
+                    <p><strong>Output File:</strong> <span id="outputFileName"></span></p>
+                    <p><strong>File Size:</strong> <span id="fileSize"></span></p>
+                    <p class="material-suggestion">
+                        <strong>💡 Material Suggestion:</strong><br>
+                        <span id="materialSuggestion"></span>
+                    </p>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary btn-large" id="downloadBtn" onclick="downloadFile()">
+                        ⬇️ Download Converted File
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetForm()">
+                        🔄 Convert Another File
+                    </button>
+                </div>
+            </section>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Converting your file...</p>
+            </div>
+
+            <!-- Best Practices Section -->
+            <section class="card best-practices-section">
+                <h2>📚 Best Practices for Laser Engraving</h2>
+                <button class="btn btn-info" onclick="toggleBestPractices()">
+                    Show Best Practices
+                </button>
+                <div id="bestPracticesList" style="display: none;">
+                    <ul id="practicesList" class="practices-list">
+                        <!-- Populated by JavaScript -->
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>💻 Unified Laser Engraving File Converter | Web + CLI | Works on any device</p>
+            <p><small>Supports: SVG, DXF, AI, EPS, PNG, JPG, BMP, TIFF</small></p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

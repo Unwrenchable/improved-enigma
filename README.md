@@ -1,14 +1,61 @@
-# Laser Engraving File Converter
+# 🔥 Laser Engraving File Converter
 
-A comprehensive Python tool for converting multiple file formats to scalable, high-definition files suitable for laser engraving, with intelligent material suggestions based on use cases.
+A comprehensive tool for converting multiple file formats to scalable, high-definition files suitable for laser engraving, with intelligent material suggestions based on use cases.
+
+**✨ NEW: Now with Web Interface! Accessible from any device - desktop, tablet, or phone!**
+
+![Web Interface](https://github.com/user-attachments/assets/c35bab72-f733-4378-a1fd-bb6ca9bc4e24)
+
+## 🌟 Access Methods
+
+Choose your preferred way to use the converter:
+
+### 1. 🌐 Web Interface (Recommended)
+- **Beautiful modern UI** with drag-and-drop upload
+- **Works on any device** - desktop, tablet, phone
+- **No command-line knowledge needed**
+- **Real-time conversion** with material suggestions
+- **Access from anywhere** on your network
+
+**Quick Start:**
+```bash
+python web_app.py
+# Then open: http://localhost:5000
+```
+
+Or use the easy launchers:
+- Windows: Double-click `start_web.bat`
+- Mac/Linux: Double-click `start_web.sh`
+
+[📖 Read the complete Web Interface Guide →](WEB_GUIDE.md)
+
+### 2. 💻 Command Line Interface
+- Full CLI functionality for advanced users
+- Perfect for batch processing and automation
+- Integration with scripts and workflows
+
+[📖 Read the CLI Usage Guide →](USAGE.md)
+
+### 3. 📦 Standalone Executable
+- Create a `.exe` file to share with friends
+- No Python installation required
+- Just double-click and run!
+
+```bash
+python build_exe.py
+# Creates: dist/LaserConverter.exe
+```
 
 ## Features
 
 - **Multiple Input Formats**: Supports both vector (SVG, DXF, AI, EPS) and raster (PNG, JPG, BMP, TIFF) files
 - **High-Quality Output**: Converts to SVG for precise vector work or high-resolution PNG (300+ DPI) for photo engraving
 - **Material Suggestions**: Provides research-backed material recommendations based on your use case
-- **Batch Processing**: Process multiple files at once
+- **Batch Processing**: Process multiple files at once (CLI)
 - **Best Practices Guide**: Built-in guidelines for successful laser engraving
+- **Web & Mobile Access**: Use from any device with a browser
+- **Unified System**: Same core functionality in web and CLI modes
+- **Privacy-Focused**: All processing happens locally on your machine
 
 ## Installation
 
@@ -24,6 +71,27 @@ A comprehensive Python tool for converting multiple file formats to scalable, hi
 
 ```bash
 pip install -r requirements.txt
+```
+
+## Quick Start
+
+### Web Interface (Easiest)
+
+```bash
+python web_app.py
+```
+Then open your browser to: **http://localhost:5000**
+
+1. Drag & drop your file or click to browse
+2. Choose output format (SVG or PNG)
+3. Select your use case (signage, jewelry, photos, etc.)
+4. Click "Convert File"
+5. Download your converted file!
+
+### Command Line
+
+```bash
+python laser_converter.py photo.jpg --output-type svg --use-case photos
 ```
 
 ## Usage
