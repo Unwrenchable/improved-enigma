@@ -1,20 +1,144 @@
-# 🔥 Laser Engraving File Converter
+# 🔥 ALL-IN-ONE Laser Engraving Application
 
-A comprehensive tool for converting multiple file formats to scalable, high-definition files suitable for laser engraving, with intelligent material suggestions based on use cases.
+**Convert files AND engrave directly - complete laser engraving solution with direct machine control!**
 
-**✨ NEW: Now with Web Interface! Accessible from any device - desktop, tablet, or phone!**
+A comprehensive tool for converting multiple file formats to scalable, high-definition files suitable for laser engraving, with intelligent material suggestions AND **direct machine control** - send G-code straight to your connected engraver!
+
+**✨ NEW: Direct Machine Control! Connect to your laser engraver via USB/Serial and engrave with one click!**
 
 ![Web Interface](https://github.com/user-attachments/assets/c35bab72-f733-4378-a1fd-bb6ca9bc4e24)
+
+## 🎯 What Makes This Special
+
+This is a **TRUE ALL-IN-ONE APPLICATION** that eliminates the need for multiple programs:
+
+### Before (Traditional Workflow)
+1. Convert file in one program
+2. Download converted file
+3. Open LightBurn/LaserGRBL
+4. Import file
+5. Connect to machine
+6. Send to machine
+
+### Now (All-in-One Workflow)
+1. **Upload file** to web interface
+2. **Convert** with one click
+3. **Click "Engrave Now"** - Done! ✨
+
+## 🚀 Key Features
+
+### 🎨 File Conversion
+- **Multiple Input Formats**: SVG, DXF, AI, EPS, PNG, JPG, BMP, TIFF
+- **High-Quality Output**: SVG for precise vector work or high-resolution PNG (300+ DPI)
+- **Multi-Format Mode**: Generate all recommended formats at once (SVG + PNG at 300/600/1200 DPI)
+- **Material Suggestions**: Research-backed material recommendations
+- **Best Practices**: Built-in guidelines for successful laser engraving
+
+### 🔌 **Direct Machine Control** ⭐ NEW!
+- **Auto-Detection**: Automatically finds USB/Serial laser engravers
+- **One-Click Connect**: Connect to your machine instantly
+- **G-code Generation**: Converts files to machine-ready G-code
+- **Direct Sending**: Streams G-code directly to your engraver
+- **Real-time Control**: Start, stop, pause, resume operations
+- **Status Monitoring**: Live machine status updates
+- **Emergency Stop**: Safety controls always available
+
+### 🖥️ Multi-Platform Access
+- **Web Interface**: Modern, responsive UI - use from any device
+- **Command Line**: Full CLI for advanced users and automation
+- **Standalone Executable**: Create .exe to share with friends (no Python needed)
+- **Network Access**: Use from phone, tablet, or any device on your network
+
+### 🔒 Privacy & Security
+- **All Local Processing**: No cloud uploads, everything stays on your machine
+- **Machine Safety**: Emergency stop, pause controls, warnings
+- **Secure Communication**: Direct serial connection to your engraver
+
+## Installation
+
+### Prerequisites
+
+1. **Python 3.7+**: Make sure Python is installed on your system
+2. **ImageMagick** (optional): Required for AI/EPS file conversion
+   - Ubuntu/Debian: `sudo apt-get install imagemagick`
+   - macOS: `brew install imagemagick`
+   - Windows: Download from [imagemagick.org](https://imagemagick.org/script/download.php)
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+**Key dependencies:**
+- `Pillow` - Image processing
+- `svgwrite` - SVG creation
+- `Flask` - Web interface
+- `pyserial` - Machine control (USB/Serial)
+- `pyinstaller` - Create executables
+
+## 🚀 Quick Start - All-in-One Workflow
+
+### Convert & Engrave in 3 Steps:
+
+**Step 1: Start the web interface**
+```bash
+python web_app.py
+# Open: http://localhost:5000
+```
+
+**Step 2: Convert your file**
+1. Drag & drop your file (SVG, PNG, JPG, etc.)
+2. Choose output format and use case
+3. Click "🔥 INITIATE CONVERSION"
+
+**Step 3: Engrave directly**
+1. Click "🔍 SCAN FOR MACHINES"
+2. Connect to your engraver
+3. Adjust power/speed settings
+4. Click "⚡ ENGRAVE NOW"
+
+That's it! Your file is converted and engraving automatically. No need to switch between programs!
+
+### Just Convert (No Machine)
+
+If you only want to convert files:
+
+**Web Interface:**
+```bash
+python web_app.py
+```
+Convert files through the browser, download results.
+
+**Command Line:**
+```bash
+python laser_converter.py photo.jpg --output-type svg --use-case photos
+```
+
+### Share with Friends
+
+Create a standalone executable:
+```bash
+python build_exe.py
+# Creates: dist/LaserConverter.exe
+# Share the .exe - no Python needed!
+```
+
+```bash
+pip install -r requirements.txt
+```
 
 ## 🌟 Access Methods
 
 Choose your preferred way to use the converter:
 
-### 1. 🌐 Web Interface (Recommended)
+### 1. 🌐 Web Interface with Machine Control (Recommended)
 - **Beautiful modern UI** with drag-and-drop upload
 - **Works on any device** - desktop, tablet, phone
-- **No command-line knowledge needed**
+- **Direct machine control** - connect and engrave with one click
 - **Real-time conversion** with material suggestions
+- **Machine detection** - automatically finds connected engravers
+- **Live status monitoring** - see what your machine is doing
 - **Access from anywhere** on your network
 
 **Quick Start:**
@@ -28,6 +152,7 @@ Or use the easy launchers:
 - Mac/Linux: Double-click `start_web.sh`
 
 [📖 Read the complete Web Interface Guide →](WEB_GUIDE.md)
+[🔌 Read the Machine Control Guide →](MACHINE_CONTROL_GUIDE.md)
 
 ### 2. 💻 Command Line Interface
 - Full CLI functionality for advanced users
@@ -46,53 +171,46 @@ python build_exe.py
 # Creates: dist/LaserConverter.exe
 ```
 
-## Features
+## 🔌 Supported Machines
 
-- **Multiple Input Formats**: Supports both vector (SVG, DXF, AI, EPS) and raster (PNG, JPG, BMP, TIFF) files
-- **High-Quality Output**: Converts to SVG for precise vector work or high-resolution PNG (300+ DPI) for photo engraving
-- **Material Suggestions**: Provides research-backed material recommendations based on your use case
-- **Batch Processing**: Process multiple files at once (CLI)
-- **Best Practices Guide**: Built-in guidelines for successful laser engraving
-- **Web & Mobile Access**: Use from any device with a browser
-- **Unified System**: Same core functionality in web and CLI modes
-- **Privacy-Focused**: All processing happens locally on your machine
+The machine control feature works with:
 
-## Installation
+- ✅ **GRBL-based engravers** (K40, NEJE, Ortur, EleksMaker, generic CNC)
+- ✅ **Marlin firmware** (3D printers with laser attachments)
+- ✅ **Smoothieware** (Smoothieboard-based systems)
+- ✅ **USB/Serial connections** (CH340, FTDI, Arduino)
+- 🔄 **Bluetooth** (coming soon)
 
-### Prerequisites
+## 📋 Complete Feature List
 
-1. **Python 3.7+**: Make sure Python is installed on your system
-2. **ImageMagick** (optional): Required for AI/EPS file conversion
-   - Ubuntu/Debian: `sudo apt-get install imagemagick`
-   - macOS: `brew install imagemagick`
-   - Windows: Download from [imagemagick.org](https://imagemagick.org/script/download.php)
+### File Conversion
+- Vector formats: SVG, DXF, AI, EPS
+- Raster formats: PNG, JPG, BMP, TIFF
+- Multi-format output (all formats at once)
+- Custom DPI settings (100-1200)
+- Material suggestions by use case
+- Best practices guide
 
-### Install Dependencies
+### Machine Control ⭐ NEW
+- Automatic device detection
+- One-click connection
+- G-code generation from files
+- Direct streaming to machine
+- Real-time status monitoring
+- Operation controls (start/stop/pause/resume)
+- Emergency stop button
+- Home machine command
+- Custom power/speed settings
+- Work area configuration
 
-```bash
-pip install -r requirements.txt
-```
-
-## Quick Start
-
-### Web Interface (Easiest)
-
-```bash
-python web_app.py
-```
-Then open your browser to: **http://localhost:5000**
-
-1. Drag & drop your file or click to browse
-2. Choose output format (SVG or PNG)
-3. Select your use case (signage, jewelry, photos, etc.)
-4. Click "Convert File"
-5. Download your converted file!
-
-### Command Line
-
-```bash
-python laser_converter.py photo.jpg --output-type svg --use-case photos
-```
+### User Interface
+- Modern industrial-themed web UI
+- Drag-and-drop file upload
+- Mobile responsive design
+- Real-time conversion progress
+- Download to Downloads folder
+- Machine status indicators
+- Multi-language G-code support
 
 ## Usage
 
