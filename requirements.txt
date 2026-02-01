@@ -20,3 +20,6 @@ Flask>=3.0.0
 
 # For creating executable
 pyinstaller>=6.0.0
+
+# Machine control - Serial/USB communication
+pyserial>=3.5

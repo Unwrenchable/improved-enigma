@@ -311,13 +311,268 @@ def health():
     return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
 
 
+# Machine Control Endpoints
+@app.route('/api/machines/scan', methods=['GET'])
+def scan_machines():
+    """Scan for connected laser engraving machines."""
+    try:
+        import machine_control
+        machines = machine_control.scan_for_machines()
+        return jsonify({
+            'success': True,
+            'machines': machines,
+            'count': len(machines)
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'machines': [],
+            'count': 0
+        })
+
+
+@app.route('/api/machines/connect', methods=['POST'])
+def connect_machine():
+    """Connect to a specific machine."""
+    data = request.json
+    
+    if not data or 'port' not in data:
+        return jsonify({'error': 'No port specified'}), 400
+    
+    port = data['port']
+    baudrate = data.get('baudrate', 115200)
+    
+    try:
+        import machine_control
+        controller = machine_control.get_controller()
+        success = controller.connect(port, baudrate)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Connected to {port}',
+                'port': port
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to connect'
+            }), 500
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/machines/disconnect', methods=['POST'])
+def disconnect_machine():
+    """Disconnect from active machine."""
+    try:
+        import machine_control
+        controller = machine_control.get_controller()
+        controller.disconnect()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Disconnected'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/machines/status', methods=['GET'])
+def get_machine_status():
+    """Get current machine status."""
+    try:
+        import machine_control
+        controller = machine_control.get_controller()
+        status = controller.get_status()
+        
+        if status:
+            return jsonify({
+                'success': True,
+                'status': status.value,
+                'connected': controller.active_connection is not None
+            })
+        else:
+            return jsonify({
+                'success': True,
+                'status': 'disconnected',
+                'connected': False
+            })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/machines/send-gcode', methods=['POST'])
+def send_gcode_to_machine():
+    """Generate G-code from file and send directly to connected machine."""
+    data = request.json
+    
+    if not data or 'filename' not in data:
+        return jsonify({'error': 'No filename provided'}), 400
+    
+    filename = data['filename']
+    work_area = data.get('work_area', [300, 200])
+    power = data.get('power', 800)
+    speed = data.get('speed', 1000)
+    
+    # Get file path
+    filepath = os.path.join(app.config['OUTPUT_FOLDER'], filename)
+    
+    if not os.path.exists(filepath):
+        return jsonify({'error': 'File not found'}), 404
+    
+    try:
+        import machine_control
+        import gcode_generator
+        
+        # Check if machine is connected
+        controller = machine_control.get_controller()
+        if not controller.active_connection:
+            return jsonify({
+                'error': 'No machine connected. Please connect first.'
+            }), 400
+        
+        # Generate G-code
+        gcode_path = os.path.join(
+            app.config['OUTPUT_FOLDER'],
+            os.path.splitext(filename)[0] + '.gcode'
+        )
+        
+        gcode_generator.generate_gcode_from_file(
+            filepath,
+            gcode_path,
+            work_area=tuple(work_area),
+            power=power,
+            speed=speed
+        )
+        
+        # Send to machine
+        success = controller.send_gcode_file(gcode_path)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'G-code sent to machine successfully',
+                'gcode_file': os.path.basename(gcode_path)
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to send G-code to machine'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/machines/control', methods=['POST'])
+def control_machine():
+    """Control machine operations (pause, resume, stop, home)."""
+    data = request.json
+    
+    if not data or 'action' not in data:
+        return jsonify({'error': 'No action specified'}), 400
+    
+    action = data['action']
+    
+    try:
+        import machine_control
+        controller = machine_control.get_controller()
+        
+        if not controller.active_connection:
+            return jsonify({'error': 'No machine connected'}), 400
+        
+        result = False
+        
+        if action == 'pause':
+            result = controller.pause()
+        elif action == 'resume':
+            result = controller.resume()
+        elif action == 'stop':
+            result = controller.stop()
+        elif action == 'home':
+            result = controller.home()
+        elif action == 'emergency_stop':
+            result = controller.emergency_stop()
+        else:
+            return jsonify({'error': f'Unknown action: {action}'}), 400
+        
+        if result:
+            return jsonify({
+                'success': True,
+                'message': f'Action {action} executed'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to execute {action}'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/machines/send-command', methods=['POST'])
+def send_command():
+    """Send raw G-code command to machine."""
+    data = request.json
+    
+    if not data or 'command' not in data:
+        return jsonify({'error': 'No command provided'}), 400
+    
+    command = data['command']
+    
+    try:
+        import machine_control
+        controller = machine_control.get_controller()
+        
+        if not controller.active_connection:
+            return jsonify({'error': 'No machine connected'}), 400
+        
+        response = controller.send_command(command)
+        
+        return jsonify({
+            'success': True,
+            'response': response
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 if __name__ == '__main__':
     print("="*70)
     print("Laser Engraving File Converter - Web Interface")
+    print("WITH DIRECT MACHINE CONTROL")
     print("="*70)
     print("\nStarting web server...")
     print("Access the application at: http://localhost:5000")
-    print("Press Ctrl+C to stop the server")
+    print("\nFeatures:")
+    print("  ✓ File conversion (SVG, PNG, DXF, etc.)")
+    print("  ✓ Multi-format output")
+    print("  ✓ Machine detection (USB/Serial)")
+    print("  ✓ Direct G-code sending")
+    print("  ✓ Machine control (Start/Stop/Pause)")
+    print("\nPress Ctrl+C to stop the server")
     print("="*70)
     
     # For production deployment, set debug=False

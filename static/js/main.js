@@ -400,3 +400,286 @@ function showAlert(message, type) {
     // Scroll to alert
     alert.scrollIntoView({ behavior: 'smooth' });
 }
+
+// ============================================================================
+// MACHINE CONTROL FUNCTIONS
+// ============================================================================
+
+let connectedMachinePort = null;
+let currentOutputFilename = null;
+
+async function scanForMachines() {
+    showLoading('Scanning for machines...');
+    
+    try {
+        const response = await fetch('/api/machines/scan');
+        const data = await response.json();
+        
+        hideLoading();
+        
+        if (data.success && data.machines.length > 0) {
+            displayMachines(data.machines);
+            showAlert(`Found ${data.machines.length} machine(s)!`, 'success');
+        } else {
+            showAlert('No machines found. Make sure your laser engraver is connected via USB.', 'warning');
+        }
+    } catch (error) {
+        hideLoading();
+        showAlert('Error scanning for machines: ' + error.message, 'error');
+    }
+}
+
+function displayMachines(machines) {
+    const machinesList = document.getElementById('machinesList');
+    machinesList.innerHTML = '';
+    
+    machines.forEach(machine => {
+        const machineCard = document.createElement('div');
+        machineCard.className = 'machine-card';
+        machineCard.innerHTML = `
+            <div class="machine-card-header">
+                <strong>${machine.name}</strong>
+                <span class="machine-type">${machine.machine_type}</span>
+            </div>
+            <div class="machine-card-body">
+                <p><strong>Port:</strong> ${machine.port}</p>
+                <p><strong>Description:</strong> ${machine.description}</p>
+                ${machine.serial_number ? `<p><strong>Serial:</strong> ${machine.serial_number}</p>` : ''}
+            </div>
+            <button class="btn btn-primary" onclick="connectToMachine('${machine.port}')">
+                🔌 CONNECT
+            </button>
+        `;
+        machinesList.appendChild(machineCard);
+    });
+    
+    machinesList.style.display = 'block';
+}
+
+async function connectToMachine(port) {
+    showLoading('Connecting to machine...');
+    
+    try {
+        const response = await fetch('/api/machines/connect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ port: port, baudrate: 115200 })
+        });
+        
+        const data = await response.json();
+        hideLoading();
+        
+        if (data.success) {
+            connectedMachinePort = port;
+            showConnectedMachine(port);
+            showAlert('Connected successfully!', 'success');
+            
+            // Start status monitoring
+            startStatusMonitoring();
+        } else {
+            showAlert('Failed to connect: ' + data.error, 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        showAlert('Connection error: ' + error.message, 'error');
+    }
+}
+
+function showConnectedMachine(port) {
+    // Hide machines list and scan button
+    document.getElementById('machinesList').style.display = 'none';
+    document.getElementById('scanMachinesBtn').style.display = 'none';
+    
+    // Show connected machine section
+    const connectedSection = document.getElementById('connectedMachine');
+    connectedSection.style.display = 'block';
+    
+    document.getElementById('connectedMachineName').textContent = 'Laser Engraver';
+    document.getElementById('connectedMachinePort').textContent = port;
+    
+    // Enable send-to-machine if file is ready
+    if (currentOutputFilename) {
+        document.getElementById('sendToMachineSection').style.display = 'block';
+    }
+}
+
+async function disconnectMachine() {
+    showLoading('Disconnecting...');
+    
+    try {
+        const response = await fetch('/api/machines/disconnect', {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        hideLoading();
+        
+        if (data.success) {
+            connectedMachinePort = null;
+            hideConnectedMachine();
+            showAlert('Disconnected successfully', 'info');
+        }
+    } catch (error) {
+        hideLoading();
+        showAlert('Disconnect error: ' + error.message, 'error');
+    }
+}
+
+function hideConnectedMachine() {
+    document.getElementById('connectedMachine').style.display = 'none';
+    document.getElementById('scanMachinesBtn').style.display = 'block';
+    document.getElementById('sendToMachineSection').style.display = 'none';
+    document.getElementById('controlButtons').style.display = 'none';
+}
+
+async function sendToMachine() {
+    if (!currentOutputFilename) {
+        showAlert('No file ready. Please convert a file first.', 'warning');
+        return;
+    }
+    
+    if (!connectedMachinePort) {
+        showAlert('No machine connected. Please connect first.', 'warning');
+        return;
+    }
+    
+    // Get settings
+    const power = parseInt(document.getElementById('laserPower').value);
+    const speed = parseInt(document.getElementById('laserSpeed').value);
+    const workWidth = parseInt(document.getElementById('workWidth').value);
+    const workHeight = parseInt(document.getElementById('workHeight').value);
+    
+    showLoading('Generating G-code and sending to machine...');
+    
+    try {
+        const response = await fetch('/api/machines/send-gcode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                filename: currentOutputFilename,
+                power: power,
+                speed: speed,
+                work_area: [workWidth, workHeight]
+            })
+        });
+        
+        const data = await response.json();
+        hideLoading();
+        
+        if (data.success) {
+            showAlert('G-code sent to machine! Engraving started.', 'success');
+            document.getElementById('controlButtons').style.display = 'block';
+        } else {
+            showAlert('Failed to send: ' + data.error, 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        showAlert('Send error: ' + error.message, 'error');
+    }
+}
+
+async function controlMachine(action) {
+    showLoading(`Executing ${action}...`);
+    
+    try {
+        const response = await fetch('/api/machines/control', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: action })
+        });
+        
+        const data = await response.json();
+        hideLoading();
+        
+        if (data.success) {
+            showAlert(`${action.toUpperCase()} executed successfully`, 'success');
+        } else {
+            showAlert('Control failed: ' + data.error, 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        showAlert('Control error: ' + error.message, 'error');
+    }
+}
+
+let statusMonitorInterval = null;
+
+function startStatusMonitoring() {
+    // Update machine status every 2 seconds
+    statusMonitorInterval = setInterval(updateMachineStatus, 2000);
+}
+
+function stopStatusMonitoring() {
+    if (statusMonitorInterval) {
+        clearInterval(statusMonitorInterval);
+        statusMonitorInterval = null;
+    }
+}
+
+async function updateMachineStatus() {
+    try {
+        const response = await fetch('/api/machines/status');
+        const data = await response.json();
+        
+        if (data.success) {
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('machineStatusText');
+            
+            // Update status display
+            statusText.textContent = data.status.toUpperCase();
+            
+            // Update indicator color
+            indicator.className = 'status-indicator';
+            if (data.status === 'idle') {
+                indicator.classList.add('status-idle');
+            } else if (data.status === 'running') {
+                indicator.classList.add('status-running');
+            } else if (data.status === 'paused') {
+                indicator.classList.add('status-paused');
+            } else if (data.status === 'error' || data.status === 'alarm') {
+                indicator.classList.add('status-error');
+            }
+            
+            if (!data.connected) {
+                stopStatusMonitoring();
+                hideConnectedMachine();
+            }
+        }
+    } catch (error) {
+        // Silently fail - machine might be disconnected
+        stopStatusMonitoring();
+    }
+}
+
+// Update the convertFile function to store the output filename
+const originalConvertFile = convertFile;
+convertFile = async function() {
+    await originalConvertFile();
+    
+    // After conversion, enable send-to-machine if connected
+    setTimeout(() => {
+        const outputFileName = document.getElementById('outputFileName');
+        if (outputFileName && outputFileName.textContent) {
+            currentOutputFilename = outputFileName.textContent;
+            if (connectedMachinePort) {
+                document.getElementById('sendToMachineSection').style.display = 'block';
+            }
+        }
+    }, 500);
+};
+
+// For multi-format, use the first SVG or PNG file
+function enableMachineSendForMultiFormat(outputs) {
+    if (outputs && outputs.length > 0) {
+        // Prefer SVG, then PNG
+        const svgFile = outputs.find(o => o.format === 'svg');
+        const pngFile = outputs.find(o => o.format === 'png');
+        
+        currentOutputFilename = svgFile ? svgFile.filename : (pngFile ? pngFile.filename : outputs[0].filename);
+        
+        if (connectedMachinePort) {
+            document.getElementById('sendToMachineSection').style.display = 'block';
+        }
+    }
+}
+
