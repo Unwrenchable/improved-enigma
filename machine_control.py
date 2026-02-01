@@ -20,6 +20,15 @@ except ImportError:
     print("Warning: pyserial not installed. USB/Serial device detection disabled.")
     print("Install with: pip install pyserial")
 
+# Bluetooth support
+try:
+    import bluetooth
+    BLUETOOTH_AVAILABLE = True
+except ImportError:
+    BLUETOOTH_AVAILABLE = False
+    print("Info: pybluez not installed. Bluetooth device detection disabled.")
+    print("Install with: pip install pybluez (optional for Bluetooth engravers)")
+
 
 class MachineStatus(Enum):
     """Machine status states."""
@@ -41,6 +50,14 @@ class MachineType(Enum):
     UNKNOWN = "Unknown"
 
 
+class ConnectionType(Enum):
+    """Connection type enumeration."""
+    USB_SERIAL = "USB/Serial"
+    BLUETOOTH = "Bluetooth"
+    NETWORK = "Network"
+    UNKNOWN = "Unknown"
+
+
 @dataclass
 class MachineInfo:
     """Information about a detected machine."""
@@ -49,16 +66,20 @@ class MachineInfo:
     description: str
     machine_type: MachineType
     status: MachineStatus
+    connection_type: ConnectionType = ConnectionType.USB_SERIAL
     serial_number: Optional[str] = None
     firmware_version: Optional[str] = None
     work_area: Optional[Tuple[float, float]] = None  # (width, height) in mm
     connected: bool = False
+    bluetooth_address: Optional[str] = None  # For Bluetooth devices
+    signal_strength: Optional[int] = None  # For Bluetooth/WiFi devices
     
     def to_dict(self):
         """Convert to dictionary for JSON serialization."""
         data = asdict(self)
         data['machine_type'] = self.machine_type.value
         data['status'] = self.status.value
+        data['connection_type'] = self.connection_type.value
         return data
 
 
@@ -78,24 +99,47 @@ class MachineController:
         # Add more as needed
     ]
     
+    # Keywords to identify Bluetooth laser engravers
+    BLUETOOTH_LASER_KEYWORDS = [
+        "laser", "engraver", "engrav", "neje", "xtool", "laserpecker",
+        "ortur", "atomstack", "sculpfun", "cnc", "grbl"
+    ]
+    
     def __init__(self):
         """Initialize the machine controller."""
         self.machines: Dict[str, MachineInfo] = {}
         self.active_connection: Optional[serial.Serial] = None
+        self.active_bluetooth_socket = None
         self.active_port: Optional[str] = None
         self.monitoring_thread: Optional[threading.Thread] = None
         self.should_monitor = False
     
     def scan_devices(self) -> List[MachineInfo]:
         """
-        Scan for connected laser engraving machines.
+        Scan for connected laser engraving machines (USB/Serial and Bluetooth).
         
         Returns:
             List of detected machines
         """
-        if not SERIAL_AVAILABLE:
-            return []
+        detected_machines = []
         
+        # Scan USB/Serial devices
+        if SERIAL_AVAILABLE:
+            detected_machines.extend(self._scan_serial_devices())
+        
+        # Scan Bluetooth devices
+        if BLUETOOTH_AVAILABLE:
+            detected_machines.extend(self._scan_bluetooth_devices())
+        
+        return detected_machines
+    
+    def _scan_serial_devices(self) -> List[MachineInfo]:
+        """
+        Scan for USB/Serial connected machines.
+        
+        Returns:
+            List of detected serial machines
+        """
         detected_machines = []
         ports = serial.tools.list_ports.comports()
         
@@ -108,6 +152,7 @@ class MachineController:
                 name=self._get_friendly_name(port, machine_type),
                 description=port.description,
                 machine_type=machine_type,
+                connection_type=ConnectionType.USB_SERIAL,
                 status=MachineStatus.DISCONNECTED,
                 serial_number=port.serial_number
             )
@@ -116,6 +161,95 @@ class MachineController:
             self.machines[port.device] = machine
         
         return detected_machines
+    
+    def _scan_bluetooth_devices(self) -> List[MachineInfo]:
+        """
+        Scan for Bluetooth laser engraving machines.
+        
+        Returns:
+            List of detected Bluetooth machines
+        """
+        detected_machines = []
+        
+        try:
+            print("Scanning for Bluetooth devices... (this may take 10-15 seconds)")
+            # Discover nearby Bluetooth devices
+            nearby_devices = bluetooth.discover_devices(
+                duration=8,
+                lookup_names=True,
+                lookup_class=True
+            )
+            
+            for addr, name, device_class in nearby_devices:
+                # Check if this looks like a laser engraver
+                if self._is_laser_engraver(name):
+                    machine_type = self._identify_bluetooth_machine_type(name)
+                    
+                    # Create machine info for Bluetooth device
+                    machine = MachineInfo(
+                        port=f"BT:{addr}",  # Unique identifier for Bluetooth
+                        name=name,
+                        description=f"Bluetooth Laser Engraver ({addr})",
+                        machine_type=machine_type,
+                        connection_type=ConnectionType.BLUETOOTH,
+                        status=MachineStatus.DISCONNECTED,
+                        bluetooth_address=addr,
+                        serial_number=addr  # Use BT address as serial
+                    )
+                    
+                    detected_machines.append(machine)
+                    self.machines[f"BT:{addr}"] = machine
+                    print(f"  Found Bluetooth device: {name} ({addr})")
+        
+        except Exception as e:
+            print(f"Bluetooth scan error: {e}")
+            print("Note: Bluetooth may require admin/root privileges")
+        
+        return detected_machines
+    
+    def _is_laser_engraver(self, device_name: str) -> bool:
+        """
+        Check if a Bluetooth device name suggests it's a laser engraver.
+        
+        Args:
+            device_name: The Bluetooth device name
+            
+        Returns:
+            True if it looks like a laser engraver
+        """
+        if not device_name:
+            return False
+        
+        name_lower = device_name.lower()
+        for keyword in self.BLUETOOTH_LASER_KEYWORDS:
+            if keyword in name_lower:
+                return True
+        return False
+    
+    def _identify_bluetooth_machine_type(self, device_name: str) -> MachineType:
+        """
+        Identify machine type from Bluetooth device name.
+        
+        Args:
+            device_name: The Bluetooth device name
+            
+        Returns:
+            MachineType enum
+        """
+        if not device_name:
+            return MachineType.UNKNOWN
+        
+        name_lower = device_name.lower()
+        
+        # Check for specific brands/types
+        if "neje" in name_lower or "xtool" in name_lower or "laserpecker" in name_lower:
+            return MachineType.GRBL  # Most desktop engravers use GRBL
+        elif "marlin" in name_lower:
+            return MachineType.MARLIN
+        elif "grbl" in name_lower or "cnc" in name_lower:
+            return MachineType.GRBL
+        
+        return MachineType.UNKNOWN
     
     def _identify_machine_type(self, port) -> MachineType:
         """
@@ -155,32 +289,105 @@ class MachineController:
     
     def connect(self, port: str, baudrate: int = 115200) -> bool:
         """
-        Connect to a specific machine.
+        Connect to a specific machine (USB/Serial or Bluetooth).
         
         Args:
-            port: Serial port (e.g., 'COM3' or '/dev/ttyUSB0')
-            baudrate: Communication speed (default: 115200)
+            port: Device port (e.g., 'COM3', '/dev/ttyUSB0', or 'BT:XX:XX:XX:XX:XX:XX')
+            baudrate: Communication speed for serial (default: 115200)
+            
+        Returns:
+            True if connection successful
+        """
+        try:
+            # Close existing connection
+            self.disconnect()
+            
+            # Check if this is a Bluetooth connection
+            if port.startswith("BT:"):
+                return self._connect_bluetooth(port)
+            else:
+                return self._connect_serial(port, baudrate)
+                
+        except Exception as e:
+            print(f"Error connecting to {port}: {e}")
+            return False
+    
+    def _connect_serial(self, port: str, baudrate: int) -> bool:
+        """
+        Connect to a USB/Serial machine.
+        
+        Args:
+            port: Serial port path
+            baudrate: Communication speed
             
         Returns:
             True if connection successful
         """
         if not SERIAL_AVAILABLE:
+            print("Error: pyserial not installed")
             return False
         
+        # Open serial connection
+        self.active_connection = serial.Serial(
+            port=port,
+            baudrate=baudrate,
+            timeout=2,
+            write_timeout=2
+        )
+        
+        self.active_port = port
+        time.sleep(2)  # Wait for connection to stabilize
+        
+        # Update machine status
+        if port in self.machines:
+            self.machines[port].connected = True
+            self.machines[port].status = MachineStatus.IDLE
+        
+        # Start monitoring thread
+        self._start_monitoring()
+        
+        print(f"Connected to {port} at {baudrate} baud")
+        return True
+    
+    def _connect_bluetooth(self, port: str) -> bool:
+        """
+        Connect to a Bluetooth machine.
+        
+        Args:
+            port: Bluetooth identifier (format: "BT:XX:XX:XX:XX:XX:XX")
+            
+        Returns:
+            True if connection successful
+        """
+        if not BLUETOOTH_AVAILABLE:
+            print("Error: pybluez not installed")
+            return False
+        
+        # Extract Bluetooth address from port identifier
+        bt_address = port.replace("BT:", "")
+        
         try:
-            # Close existing connection
-            self.disconnect()
+            # Create Bluetooth socket using RFCOMM (Serial Port Profile)
+            print(f"Connecting to Bluetooth device {bt_address}...")
+            sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
             
-            # Open new connection
-            self.active_connection = serial.Serial(
-                port=port,
-                baudrate=baudrate,
-                timeout=2,
-                write_timeout=2
-            )
+            # Find the SPP service (Serial Port Profile)
+            # Most laser engravers use channel 1, but we'll try to discover
+            services = bluetooth.find_service(address=bt_address)
             
+            channel = 1  # Default channel
+            if services:
+                for service in services:
+                    if "serial" in service.get("name", "").lower():
+                        channel = service["port"]
+                        break
+            
+            # Connect to the device
+            sock.connect((bt_address, channel))
+            sock.settimeout(2.0)
+            
+            self.active_bluetooth_socket = sock
             self.active_port = port
-            time.sleep(2)  # Wait for connection to stabilize
             
             # Update machine status
             if port in self.machines:
@@ -190,19 +397,34 @@ class MachineController:
             # Start monitoring thread
             self._start_monitoring()
             
+            print(f"Connected to Bluetooth device {bt_address}")
             return True
             
         except Exception as e:
-            print(f"Error connecting to {port}: {e}")
+            print(f"Bluetooth connection error: {e}")
+            if self.active_bluetooth_socket:
+                try:
+                    self.active_bluetooth_socket.close()
+                except Exception:
+                    pass
+                self.active_bluetooth_socket = None
             return False
     
     def disconnect(self):
         """Disconnect from the active machine."""
         self._stop_monitoring()
         
+        # Close serial connection
         if self.active_connection and self.active_connection.is_open:
             try:
                 self.active_connection.close()
+            except Exception:
+                pass
+        
+        # Close Bluetooth connection
+        if self.active_bluetooth_socket:
+            try:
+                self.active_bluetooth_socket.close()
             except Exception:
                 pass
         
@@ -211,11 +433,12 @@ class MachineController:
             self.machines[self.active_port].status = MachineStatus.DISCONNECTED
         
         self.active_connection = None
+        self.active_bluetooth_socket = None
         self.active_port = None
     
     def send_command(self, command: str) -> Optional[str]:
         """
-        Send a command to the connected machine.
+        Send a command to the connected machine (Serial or Bluetooth).
         
         Args:
             command: G-code or machine command
@@ -223,7 +446,8 @@ class MachineController:
         Returns:
             Response from machine, or None if error
         """
-        if not self.active_connection or not self.active_connection.is_open:
+        # Check if we have any active connection
+        if not self.active_connection and not self.active_bluetooth_socket:
             return None
         
         try:
@@ -231,11 +455,26 @@ class MachineController:
             if not command.endswith('\n'):
                 command += '\n'
             
-            self.active_connection.write(command.encode())
+            # Send via appropriate connection type
+            if self.active_connection and self.active_connection.is_open:
+                # Serial connection
+                self.active_connection.write(command.encode())
+                response = self.active_connection.readline().decode().strip()
+                return response
+                
+            elif self.active_bluetooth_socket:
+                # Bluetooth connection
+                self.active_bluetooth_socket.send(command.encode())
+                
+                # Try to read response (with timeout)
+                try:
+                    response = self.active_bluetooth_socket.recv(1024).decode().strip()
+                    return response
+                except Exception:
+                    # Bluetooth might not always respond
+                    return "ok"
             
-            # Read response (timeout after 2 seconds)
-            response = self.active_connection.readline().decode().strip()
-            return response
+            return None
             
         except Exception as e:
             print(f"Error sending command: {e}")
@@ -252,7 +491,7 @@ class MachineController:
         Returns:
             True if successful
         """
-        if not self.active_connection or not self.active_connection.is_open:
+        if not self.active_connection and not self.active_bluetooth_socket:
             return False
         
         try:

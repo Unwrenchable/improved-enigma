@@ -35,8 +35,9 @@ This is a **TRUE ALL-IN-ONE APPLICATION** that eliminates the need for multiple 
 - **Best Practices**: Built-in guidelines for successful laser engraving
 
 ### 🔌 **Direct Machine Control** ⭐ NEW!
-- **Auto-Detection**: Automatically finds USB/Serial laser engravers
-- **One-Click Connect**: Connect to your machine instantly
+- **Auto-Detection**: Automatically finds USB/Serial AND Bluetooth laser engravers
+- **Bluetooth Support**: YES! Wireless control of Bluetooth-enabled engravers (xTool, LaserPecker, NEJE, etc.)
+- **One-Click Connect**: Connect to your machine instantly (wired or wireless)
 - **G-code Generation**: Converts files to machine-ready G-code
 - **Direct Sending**: Streams G-code directly to your engraver
 - **Real-time Control**: Start, stop, pause, resume operations
@@ -75,7 +76,16 @@ pip install -r requirements.txt
 - `svgwrite` - SVG creation
 - `Flask` - Web interface
 - `pyserial` - Machine control (USB/Serial)
+- `pybluez` - Bluetooth support (optional - only needed for Bluetooth engravers)
 - `pyinstaller` - Create executables
+
+**Optional Bluetooth Setup:**
+If you have Bluetooth laser engravers (xTool M1, LaserPecker, NEJE, etc.):
+```bash
+pip install pybluez
+```
+
+See [BLUETOOTH_GUIDE.md](BLUETOOTH_GUIDE.md) for detailed Bluetooth setup instructions.
 
 ## 🚀 Quick Start - All-in-One Workflow
 
@@ -175,11 +185,21 @@ python build_exe.py
 
 The machine control feature works with:
 
+**USB/Serial Engravers:**
 - ✅ **GRBL-based engravers** (K40, NEJE, Ortur, EleksMaker, generic CNC)
 - ✅ **Marlin firmware** (3D printers with laser attachments)
 - ✅ **Smoothieware** (Smoothieboard-based systems)
 - ✅ **USB/Serial connections** (CH340, FTDI, Arduino)
-- 🔄 **Bluetooth** (coming soon)
+
+**Bluetooth Engravers:** 🔵 NEW!
+- ✅ **xTool M1** - Bluetooth + USB + WiFi
+- ✅ **LaserPecker series** (L1, L2, LP3, LP4) - Primary Bluetooth
+- ✅ **NEJE Master 2S Plus** - Bluetooth capable
+- ✅ **AtomStack** (select models) - Bluetooth enabled
+- ✅ **Ortur Laser Master 3** - Bluetooth support
+- ✅ **Portable/mini engravers** - Many support Bluetooth
+
+**See [BLUETOOTH_GUIDE.md](BLUETOOTH_GUIDE.md) for complete Bluetooth setup and usage.**
 
 ## 📋 Complete Feature List
 
@@ -192,7 +212,8 @@ The machine control feature works with:
 - Best practices guide
 
 ### Machine Control ⭐ NEW
-- Automatic device detection
+- Automatic device detection (USB/Serial AND Bluetooth)
+- Bluetooth wireless connection (xTool, LaserPecker, NEJE, etc.)
 - One-click connection
 - G-code generation from files
 - Direct streaming to machine

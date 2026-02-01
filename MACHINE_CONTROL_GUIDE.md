@@ -61,14 +61,40 @@ The Laser Engraving File Converter now includes **DIRECT MACHINE CONTROL** capab
 ### 🔌 Connection Types
 - ✅ USB (via Serial - CH340, FTDI, Arduino)
 - ✅ Direct Serial (RS-232)
-- 🔄 Bluetooth (coming soon)
+- ✅ **Bluetooth** (YES! It's real and supported - see [BLUETOOTH_GUIDE.md](BLUETOOTH_GUIDE.md))
+
+### 🔵 Bluetooth Support
+
+**Yes, Bluetooth laser engravers are a real thing!** Many desktop and portable engravers include Bluetooth connectivity. This app supports them!
+
+**Popular Bluetooth models:**
+- LaserPecker series (L1, L2, LP3, LP4)
+- xTool M1
+- NEJE Master 2S Plus
+- AtomStack (some models)
+- Many portable/mini engravers
+
+**To use Bluetooth engravers:**
+1. Install optional Bluetooth support: `pip install pybluez`
+2. Pair your engraver via OS Bluetooth settings
+3. Scan for machines in the app
+4. Connect wirelessly!
+
+**See the complete guide**: [BLUETOOTH_GUIDE.md](BLUETOOTH_GUIDE.md) for setup instructions, troubleshooting, and best practices.
 
 ## How to Use
 
 ### Step 1: Install Dependencies
 
+**Required (USB/Serial):**
 ```bash
 pip install pyserial
+```
+
+**Optional (Bluetooth):**
+```bash
+# Only if you have Bluetooth engravers
+pip install pybluez
 ```
 
 ### Step 2: Start the Web App
