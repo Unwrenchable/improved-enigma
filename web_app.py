@@ -192,4 +192,14 @@ if __name__ == '__main__':
     print("Access the application at: http://localhost:5000")
     print("Press Ctrl+C to stop the server")
     print("="*70)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    
+    # For production deployment, set debug=False
+    # For development, you can set debug=True
+    import os
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    
+    if debug_mode:
+        print("\n⚠️  WARNING: Debug mode is enabled. Use only for development!")
+        print("   Set FLASK_DEBUG=False for production deployment.")
+    
+    app.run(host='0.0.0.0', port=5000, debug=debug_mode)
