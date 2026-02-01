@@ -245,6 +245,14 @@ main {
     gap: 10px;
 }
 
+.download-note {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    text-align: center;
+    margin: -5px 0 10px 0;
+    font-style: italic;
+}
+
 /* Loading Indicator */
 .loading {
     text-align: center;

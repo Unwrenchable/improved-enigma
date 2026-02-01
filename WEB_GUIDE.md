@@ -103,9 +103,20 @@ Start the server, then access from:
 - See material suggestions automatically
 
 ### Step 4: Download
-- Click "⬇️ Download Converted File"
-- File saves to your downloads folder
+- Click "⬇️ Download to Your Downloads Folder"
+- **File automatically saves to your Downloads folder**
+- Works on all devices (desktop, tablet, mobile)
+- Clean, user-friendly filename
+- High-quality scalable output
 - Ready to import into LightBurn or your laser software!
+
+### Features:
+- ✅ **Any Input Accepted**: All common formats supported
+- ✅ **Clean Output**: Optimized, scalable files
+- ✅ **Auto Downloads**: Files go directly to Downloads folder
+- ✅ **Any Device**: Works on desktop, tablet, phone
+- ✅ **High Quality**: 300+ DPI for rasters, perfect vectors for SVG
+- ✅ **User-Friendly**: Clean filenames, proper MIME types
 
 ## Material Suggestions
 

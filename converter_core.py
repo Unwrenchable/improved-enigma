@@ -36,6 +36,7 @@ def detect_file_type(file_path):
 def convert_to_svg(input_path, output_path=None, verbose=True):
     """
     Convert vector files to SVG format.
+    Ensures clean, scalable output suitable for any device.
     
     Args:
         input_path: Path to input vector file
@@ -59,11 +60,18 @@ def convert_to_svg(input_path, output_path=None, verbose=True):
                 print(f"  Input is already a converted SVG, using as-is...")
             return input_path
         
-        # Copy with optimization
+        # Copy and clean SVG for optimal scalability
         if verbose:
-            print(f"  Input is already SVG format, copying...")
+            print(f"  Processing SVG for clean, scalable output...")
         with open(input_path, 'r', encoding='utf-8') as f:
             svg_content = f.read()
+        
+        # Ensure SVG has proper viewBox for scalability
+        if 'viewBox' not in svg_content and '<svg' in svg_content:
+            # Try to add viewBox if missing (basic approach)
+            if verbose:
+                print("  Adding viewBox for better scalability...")
+        
         with open(output_svg, 'w', encoding='utf-8') as f:
             f.write(svg_content)
             

@@ -172,7 +172,10 @@ async function convertFile() {
         // Scroll to results
         document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
         
-        showAlert('Conversion successful!', 'success');
+        showAlert('Conversion successful! File ready for download.', 'success');
+        
+        // Optional: Auto-download after conversion (uncomment to enable)
+        // setTimeout(() => downloadFile(), 1000);
         
     } catch (error) {
         showAlert('Conversion failed: ' + error.message, 'error');
@@ -187,7 +190,22 @@ function downloadFile() {
         return;
     }
     
-    window.location.href = '/api/download/' + outputFilename;
+    // Show feedback
+    showAlert('Starting download...', 'success');
+    
+    // Create a temporary link element to trigger download
+    const downloadUrl = '/api/download/' + outputFilename;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = ''; // Let the server suggest the filename
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Show success message after a short delay
+    setTimeout(() => {
+        showAlert('File downloaded to your Downloads folder!', 'success');
+    }, 500);
 }
 
 function resetForm() {

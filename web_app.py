@@ -168,14 +168,37 @@ def convert_file():
 
 @app.route('/api/download/<filename>')
 def download_file(filename):
-    """Download converted file."""
+    """Download converted file with proper MIME types and clean filenames."""
     filename = secure_filename(filename)
     filepath = os.path.join(app.config['OUTPUT_FOLDER'], filename)
     
     if not os.path.exists(filepath):
         return jsonify({'error': 'File not found'}), 404
     
-    return send_file(filepath, as_attachment=True)
+    # Determine MIME type based on file extension
+    ext = os.path.splitext(filename)[1].lower()
+    mime_types = {
+        '.svg': 'image/svg+xml',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg'
+    }
+    mime_type = mime_types.get(ext, 'application/octet-stream')
+    
+    # Create a clean, user-friendly download filename
+    # Remove the unique ID prefix for cleaner downloads
+    parts = filename.split('_', 1)
+    if len(parts) > 1:
+        clean_filename = parts[1]  # Remove unique ID
+    else:
+        clean_filename = filename
+    
+    return send_file(
+        filepath,
+        as_attachment=True,
+        download_name=clean_filename,
+        mimetype=mime_type
+    )
 
 
 @app.route('/health')
