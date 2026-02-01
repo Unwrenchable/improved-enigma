@@ -6,4 +6,4 @@ services:
     startCommand: python web_app.py
     envVars:
       - key: FLASK_DEBUG
-        value: false
+        value: "false"
