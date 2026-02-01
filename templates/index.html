@@ -9,8 +9,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>🔥 Laser Engraving File Converter</h1>
-            <p class="subtitle">Convert images and designs for laser engraving - Accessible from any device</p>
+            <h1>⚡ LASER ENGRAVING FILE CONVERTER ⚡</h1>
+            <p class="subtitle">INDUSTRIAL-GRADE CONVERSION SYSTEM | MULTI-FORMAT OUTPUT | ANY DEVICE</p>
         </header>
 
         <main>
@@ -34,20 +34,67 @@
 
             <!-- Conversion Options -->
             <section class="card options-section" id="optionsSection" style="display: none;">
-                <h2>⚙️ Conversion Options</h2>
+                <h2>⚙️ CONVERSION OPTIONS</h2>
                 
                 <div class="form-group">
-                    <label for="outputType">Output Format:</label>
-                    <select id="outputType" class="form-control">
-                        <option value="svg">SVG (Vector - for precise cuts and lines)</option>
-                        <option value="png">PNG (Raster - for photo engraving)</option>
+                    <label for="conversionMode">CONVERSION MODE:</label>
+                    <select id="conversionMode" class="form-control">
+                        <option value="multi">ALL FORMATS (RECOMMENDED) - Generates SVG + 3 PNG Resolutions</option>
+                        <option value="single">SINGLE FORMAT - Choose One Output</option>
                     </select>
                 </div>
 
+                <div id="singleFormatOptions" style="display: none;">
+                    <div class="form-group">
+                        <label for="outputType">OUTPUT FORMAT:</label>
+                        <select id="outputType" class="form-control">
+                            <option value="svg">SVG (Vector - for precise cuts and lines)</option>
+                            <option value="png">PNG (Raster - for photo engraving)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="dpiGroup">
+                        <label for="dpi">DPI (FOR PNG OUTPUT):</label>
+                        <input type="number" id="dpi" class="form-control" value="300" min="100" max="1200" step="100">
+                        <small>RECOMMENDED: 300-600 DPI</small>
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label for="useCase">Use Case:</label>
+                    <label for="useCase">USE CASE:</label>
                     <select id="useCase" class="form-control">
-                        <option value="general">General Purpose</option>
+                        <option value="general">GENERAL PURPOSE</option>
+                        <option value="signage">SIGNAGE</option>
+                        <option value="jewelry">JEWELRY</option>
+                        <option value="personalization">PERSONALIZATION</option>
+                        <option value="photos">PHOTOS</option>
+                        <option value="industrial">INDUSTRIAL</option>
+                        <option value="arts">ARTS & CRAFTS</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-success btn-large" id="convertBtn" onclick="convertFile()">
+                    🔥 INITIATE CONVERSION
+                </button>
+            </section>
+
+            <!-- Multi-Format Results Section -->
+            <section class="card results-section" id="multiResultsSection" style="display: none;">
+                <h2>✅ ALL FORMATS GENERATED</h2>
+                
+                <div id="outputsGrid" class="outputs-grid">
+                    <!-- Output cards will be dynamically inserted here -->
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary btn-large" id="downloadAllBtn" onclick="downloadAllFiles()">
+                        📦 DOWNLOAD ALL FORMATS (ZIP)
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetForm()">
+                        🔄 CONVERT ANOTHER FILE
+                    </button>
+                </div>
+            </section>
                         <option value="signage">Signage</option>
                         <option value="jewelry">Jewelry</option>
                         <option value="personalization">Personalization</option>

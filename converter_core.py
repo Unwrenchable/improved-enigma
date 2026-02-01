@@ -388,3 +388,153 @@ def convert_file(input_path, output_type='svg', dpi=300, threshold=128, use_case
         result['error'] = str(e)
     
     return result
+
+
+def convert_file_multi_format(input_path, use_case='general', verbose=True):
+    """
+    Convert file to all recommended laser engraving formats.
+    
+    Generates:
+    - SVG (scalable vector - standard for cutting/engraving)
+    - PNG 300 DPI (photo engraving - standard quality)
+    - PNG 600 DPI (high detail engraving)
+    - PNG 1200 DPI (ultra-precision/fine detail)
+    
+    Args:
+        input_path: Path to input file
+        use_case: Use case for material suggestions
+        verbose: Whether to print progress messages
+        
+    Returns:
+        Dictionary with all conversion results:
+        {
+            'success': bool,
+            'outputs': {
+                'svg': {'path': str, 'size': int, 'suggestion': str},
+                'png_300': {'path': str, 'size': int, 'suggestion': str},
+                'png_600': {'path': str, 'size': int, 'suggestion': str},
+                'png_1200': {'path': str, 'size': int, 'suggestion': str}
+            },
+            'file_type': str,
+            'error': str (if success=False)
+        }
+    """
+    result = {
+        'success': False,
+        'outputs': {},
+        'file_type': None,
+        'error': None
+    }
+    
+    try:
+        # Check if file exists
+        if not os.path.exists(input_path):
+            result['error'] = f"File not found: {input_path}"
+            return result
+        
+        # Detect file type
+        file_type = detect_file_type(input_path)
+        result['file_type'] = file_type
+        
+        if verbose:
+            print(f"  Generating all recommended formats for {file_type} file...")
+        
+        base_path = os.path.splitext(input_path)[0]
+        outputs = {}
+        
+        # 1. Generate SVG (scalable vector)
+        try:
+            if verbose:
+                print("  [1/4] Generating SVG (scalable vector)...")
+            svg_path = base_path + '_converted.svg'
+            if file_type == 'vector':
+                svg_output = convert_to_svg(input_path, output_path=svg_path, verbose=False)
+            else:
+                svg_output = raster_to_svg(input_path, output_path=svg_path, threshold=128, verbose=False)
+            
+            outputs['svg'] = {
+                'path': svg_output,
+                'size': os.path.getsize(svg_output),
+                'suggestion': suggest_material(svg_output, use_case),
+                'format': 'SVG',
+                'description': 'Scalable vector - ideal for cutting and line engraving'
+            }
+        except Exception as e:
+            if verbose:
+                print(f"  Warning: SVG generation failed - {e}")
+        
+        # 2. Generate PNG 300 DPI (standard quality)
+        try:
+            if verbose:
+                print("  [2/4] Generating PNG at 300 DPI (standard quality)...")
+            png_300_path = base_path + '_300dpi.png'
+            if file_type == 'raster':
+                png_300_output = convert_to_high_res_png(input_path, output_path=png_300_path, dpi=300, verbose=False)
+            else:
+                png_300_output = svg_to_png(input_path, output_path=png_300_path, dpi=300, verbose=False)
+            
+            outputs['png_300'] = {
+                'path': png_300_output,
+                'size': os.path.getsize(png_300_output),
+                'suggestion': suggest_material(png_300_output, use_case),
+                'format': 'PNG 300 DPI',
+                'description': 'Standard photo engraving quality'
+            }
+        except Exception as e:
+            if verbose:
+                print(f"  Warning: PNG 300 DPI generation failed - {e}")
+        
+        # 3. Generate PNG 600 DPI (high detail)
+        try:
+            if verbose:
+                print("  [3/4] Generating PNG at 600 DPI (high detail)...")
+            png_600_path = base_path + '_600dpi.png'
+            if file_type == 'raster':
+                png_600_output = convert_to_high_res_png(input_path, output_path=png_600_path, dpi=600, verbose=False)
+            else:
+                png_600_output = svg_to_png(input_path, output_path=png_600_path, dpi=600, verbose=False)
+            
+            outputs['png_600'] = {
+                'path': png_600_output,
+                'size': os.path.getsize(png_600_output),
+                'suggestion': suggest_material(png_600_output, use_case),
+                'format': 'PNG 600 DPI',
+                'description': 'High detail for fine engraving'
+            }
+        except Exception as e:
+            if verbose:
+                print(f"  Warning: PNG 600 DPI generation failed - {e}")
+        
+        # 4. Generate PNG 1200 DPI (ultra precision)
+        try:
+            if verbose:
+                print("  [4/4] Generating PNG at 1200 DPI (ultra precision)...")
+            png_1200_path = base_path + '_1200dpi.png'
+            if file_type == 'raster':
+                png_1200_output = convert_to_high_res_png(input_path, output_path=png_1200_path, dpi=1200, verbose=False)
+            else:
+                png_1200_output = svg_to_png(input_path, output_path=png_1200_path, dpi=1200, verbose=False)
+            
+            outputs['png_1200'] = {
+                'path': png_1200_output,
+                'size': os.path.getsize(png_1200_output),
+                'suggestion': suggest_material(png_1200_output, use_case),
+                'format': 'PNG 1200 DPI',
+                'description': 'Ultra-precision for micro-detail work'
+            }
+        except Exception as e:
+            if verbose:
+                print(f"  Warning: PNG 1200 DPI generation failed - {e}")
+        
+        if outputs:
+            result['success'] = True
+            result['outputs'] = outputs
+            if verbose:
+                print(f"  ✓ Generated {len(outputs)} format(s) successfully")
+        else:
+            result['error'] = "Failed to generate any output formats"
+        
+    except Exception as e:
+        result['error'] = str(e)
+    
+    return result

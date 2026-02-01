@@ -7,6 +7,7 @@ Provides a web interface accessible from any device for file conversion.
 import os
 import uuid
 import time
+import zipfile
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, send_file, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
@@ -106,6 +107,109 @@ def upload_file():
         'file_type': file_type,
         'unique_id': unique_id
     })
+
+
+
+
+@app.route('/api/convert-multi', methods=['POST'])
+def convert_file_multi():
+    """Handle multi-format file conversion - generates all recommended formats."""
+    data = request.json
+    
+    if not data or 'filename' not in data:
+        return jsonify({'error': 'No filename provided'}), 400
+    
+    filename = data['filename']
+    use_case = data.get('use_case', 'general')
+    
+    input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    
+    if not os.path.exists(input_path):
+        return jsonify({'error': 'File not found'}), 404
+    
+    # Convert file to all formats
+    result = converter_core.convert_file_multi_format(
+        input_path,
+        use_case=use_case,
+        verbose=False
+    )
+    
+    if not result['success']:
+        return jsonify({'error': result['error']}), 500
+    
+    # Move converted files to output folder and prepare response
+    unique_id = filename.split('_')[0]
+    base_name = '_'.join(filename.split('_')[1:])
+    base_name = os.path.splitext(base_name)[0]
+    
+    outputs_info = {}
+    for format_key, output_data in result['outputs'].items():
+        # Determine file extension
+        if 'svg' in format_key:
+            ext = 'svg'
+        else:
+            ext = 'png'
+        
+        # Create output filename
+        format_suffix = format_key.replace('_', '')  # e.g., 'png300'
+        output_filename = f"{unique_id}_{base_name}_{format_suffix}.{ext}"
+        output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
+        
+        # Move file
+        import shutil
+        if output_data['path'] != output_path:
+            shutil.move(output_data['path'], output_path)
+        
+        # Get file size
+        file_size = os.path.getsize(output_path)
+        file_size_mb = round(file_size / (1024 * 1024), 2)
+        
+        outputs_info[format_key] = {
+            'filename': output_filename,
+            'format': output_data['format'],
+            'description': output_data['description'],
+            'file_size': file_size,
+            'file_size_mb': file_size_mb,
+            'material_suggestion': output_data['suggestion']
+        }
+    
+    return jsonify({
+        'success': True,
+        'file_type': result['file_type'],
+        'outputs': outputs_info
+    })
+
+
+@app.route('/api/download-all/<unique_id>', methods=['GET'])
+def download_all_files(unique_id):
+    """Create and download a ZIP file containing all converted files."""
+    # Find all files with this unique_id in the output folder
+    output_files = []
+    for filename in os.listdir(app.config['OUTPUT_FOLDER']):
+        if filename.startswith(unique_id + '_'):
+            output_files.append(filename)
+    
+    if not output_files:
+        return jsonify({'error': 'No files found'}), 404
+    
+    # Create ZIP file
+    zip_filename = f"{unique_id}_all_formats.zip"
+    zip_path = os.path.join(app.config['OUTPUT_FOLDER'], zip_filename)
+    
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for filename in output_files:
+            if not filename.endswith('.zip'):  # Don't include old zip files
+                filepath = os.path.join(app.config['OUTPUT_FOLDER'], filename)
+                # Add file to ZIP with clean name (remove unique ID)
+                clean_name = '_'.join(filename.split('_')[1:])
+                zipf.write(filepath, clean_name)
+    
+    return send_file(
+        zip_path,
+        as_attachment=True,
+        download_name='laser_engraving_all_formats.zip',
+        mimetype='application/zip'
+    )
 
 
 @app.route('/api/convert', methods=['POST'])

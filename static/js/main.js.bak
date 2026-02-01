@@ -3,8 +3,6 @@
 let uploadedFile = null;
 let uploadedFilename = null;
 let outputFilename = null;
-let uniqueId = null;
-let multiFormatOutputs = {};
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -15,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupEventListeners() {
     const fileInput = document.getElementById('fileInput');
     const uploadArea = document.getElementById('uploadArea');
-    const conversionMode = document.getElementById('conversionMode');
+    const outputType = document.getElementById('outputType');
     
     // File input change
     fileInput.addEventListener('change', handleFileSelect);
@@ -26,21 +24,8 @@ function setupEventListeners() {
     uploadArea.addEventListener('dragleave', handleDragLeave);
     uploadArea.addEventListener('drop', handleDrop);
     
-    // Conversion mode change
-    if (conversionMode) {
-        conversionMode.addEventListener('change', handleConversionModeChange);
-    }
-}
-
-function handleConversionModeChange() {
-    const mode = document.getElementById('conversionMode').value;
-    const singleOptions = document.getElementById('singleFormatOptions');
-    
-    if (mode === 'single') {
-        singleOptions.style.display = 'block';
-    } else {
-        singleOptions.style.display = 'none';
-    }
+    // Output type change
+    outputType.addEventListener('change', handleOutputTypeChange);
 }
 
 function handleDragOver(e) {
@@ -138,109 +123,9 @@ async function convertFile() {
         return;
     }
     
-    const conversionMode = document.getElementById('conversionMode').value;
-    const useCase = document.getElementById('useCase').value;
-    
-    if (conversionMode === 'multi') {
-        await convertFileMultiFormat(useCase);
-    } else {
-        await convertFileSingleFormat();
-    }
-}
-
-async function convertFileMultiFormat(useCase) {
-    // Show loading
-    showLoading('Generating all formats...');
-    document.getElementById('convertBtn').disabled = true;
-    
-    try {
-        const response = await fetch('/api/convert-multi', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                filename: uploadedFilename,
-                use_case: useCase
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.error) {
-            showAlert(data.error, 'error');
-            hideLoading();
-            document.getElementById('convertBtn').disabled = false;
-            return;
-        }
-        
-        // Store outputs
-        multiFormatOutputs = data.outputs;
-        uniqueId = uploadedFilename.split('_')[0];
-        
-        // Display all outputs
-        displayMultiFormatOutputs(data.outputs);
-        
-        // Show results section
-        document.getElementById('multiResultsSection').style.display = 'block';
-        hideLoading();
-        document.getElementById('convertBtn').disabled = false;
-        
-        // Scroll to results
-        document.getElementById('multiResultsSection').scrollIntoView({ behavior: 'smooth' });
-        
-        showAlert(`Successfully generated ${Object.keys(data.outputs).length} formats!`, 'success');
-        
-    } catch (error) {
-        showAlert('Conversion failed: ' + error.message, 'error');
-        hideLoading();
-        document.getElementById('convertBtn').disabled = false;
-    }
-}
-
-function displayMultiFormatOutputs(outputs) {
-    const grid = document.getElementById('outputsGrid');
-    grid.innerHTML = '';
-    
-    for (const [key, output] of Object.entries(outputs)) {
-        const card = document.createElement('div');
-        card.className = 'output-card';
-        card.innerHTML = `
-            <h3>${output.format}</h3>
-            <p>${output.description}</p>
-            <p><strong>Size:</strong> ${output.file_size_mb} MB</p>
-            <p class="specs"><strong>Material:</strong> ${output.material_suggestion}</p>
-            <button class="btn btn-primary" onclick="downloadSingleFormat('${output.filename}')">
-                ⬇ DOWNLOAD
-            </button>
-        `;
-        grid.appendChild(card);
-    }
-}
-
-function downloadSingleFormat(filename) {
-    window.location.href = '/api/download/' + filename;
-    showAlert('Downloading ' + filename, 'success');
-}
-
-function downloadAllFiles() {
-    if (!uniqueId) {
-        showAlert('No files to download', 'error');
-        return;
-    }
-    
-    showAlert('Preparing ZIP file...', 'success');
-    window.location.href = '/api/download-all/' + uniqueId;
-    
-    setTimeout(() => {
-        showAlert('ZIP file downloaded to your Downloads folder!', 'success');
-    }, 1000);
-}
-
-async function convertFileSingleFormat() {
     const outputType = document.getElementById('outputType').value;
     const dpi = document.getElementById('dpi').value;
-    const threshold = document.getElementById('threshold') ? document.getElementById('threshold').value : 128;
+    const threshold = document.getElementById('threshold').value;
     const useCase = document.getElementById('useCase').value;
     
     // Show loading
@@ -289,6 +174,9 @@ async function convertFileSingleFormat() {
         
         showAlert('Conversion successful! File ready for download.', 'success');
         
+        // Optional: Auto-download after conversion (uncomment to enable)
+        // setTimeout(() => downloadFile(), 1000);
+        
     } catch (error) {
         showAlert('Conversion failed: ' + error.message, 'error');
         hideLoading();
@@ -325,15 +213,12 @@ function resetForm() {
     uploadedFile = null;
     uploadedFilename = null;
     outputFilename = null;
-    uniqueId = null;
-    multiFormatOutputs = {};
     
     // Reset form
     document.getElementById('fileInput').value = '';
     document.getElementById('fileInfo').style.display = 'none';
     document.getElementById('optionsSection').style.display = 'none';
     document.getElementById('resultsSection').style.display = 'none';
-    document.getElementById('multiResultsSection').style.display = 'none';
     
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
