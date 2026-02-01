@@ -59,7 +59,13 @@ def convert_to_svg(input_path):
     output_svg = os.path.splitext(input_path)[0] + '_converted.svg'
     
     if ext == '.svg':
-        # Already SVG, copy with optimization
+        # Already SVG, check if it's already a converted file to avoid redundant conversions
+        basename = os.path.basename(input_path)
+        if '_converted.svg' in basename:
+            print(f"  Input is already a converted SVG, using as-is...")
+            return input_path
+        
+        # Copy with optimization
         print(f"  Input is already SVG format, copying...")
         with open(input_path, 'r', encoding='utf-8') as f:
             svg_content = f.read()

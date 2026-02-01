@@ -75,11 +75,28 @@ def test_material_suggestions():
         result = suggest_material("output.xyz", "unknown")
         assert "General suggestion" in result
         
-        # Verify all use cases exist
+        # Verify all use cases exist and have meaningful content
         use_cases = ['signage', 'jewelry', 'personalization', 'photos', 'general', 'industrial', 'arts']
         for use_case in use_cases:
             assert use_case in MATERIAL_SUGGESTIONS['svg']
             assert use_case in MATERIAL_SUGGESTIONS['png']
+            
+            # Verify suggestions are non-empty and meaningful
+            svg_suggestion = MATERIAL_SUGGESTIONS['svg'][use_case]
+            png_suggestion = MATERIAL_SUGGESTIONS['png'][use_case]
+            
+            assert len(svg_suggestion) > 10, f"SVG suggestion for {use_case} too short"
+            assert len(png_suggestion) > 10, f"PNG suggestion for {use_case} too short"
+            
+            # Check for relevant keywords (material names or "Not recommended" for inappropriate uses)
+            if use_case != 'general':
+                # Suggestions should mention materials OR indicate not recommended
+                material_keywords = ['wood', 'acrylic', 'metal', 'leather', 'slate', 'aluminum', 
+                                   'bamboo', 'ceramic', 'mdf', 'plywood', 'not recommended', 'not ideal']
+                assert any(keyword in svg_suggestion.lower() for keyword in material_keywords), \
+                    f"SVG suggestion for {use_case} missing material keywords: {svg_suggestion}"
+                assert any(keyword in png_suggestion.lower() for keyword in material_keywords), \
+                    f"PNG suggestion for {use_case} missing material keywords: {png_suggestion}"
         
         print("✓")
         return True
