@@ -243,4 +243,4 @@ Contributions welcome! Areas for improvement:
 
 ## Support
 
-For issues, questions, or suggestions, please open an issue on GitHub. 
+For issues, questions, or suggestions, please open an issue on GitHub.
