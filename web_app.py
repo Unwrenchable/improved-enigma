@@ -579,9 +579,10 @@ if __name__ == '__main__':
     # For development, you can set debug=True
     import os
     debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    port = int(os.environ.get('PORT', 5000))
     
     if debug_mode:
         print("\n⚠️  WARNING: Debug mode is enabled. Use only for development!")
         print("   Set FLASK_DEBUG=False for production deployment.")
     
-    app.run(host='0.0.0.0', port=5000, debug=debug_mode)
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
