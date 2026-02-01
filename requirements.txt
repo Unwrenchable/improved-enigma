@@ -1,14 +1,30 @@
 # Core dependencies for laser engraving file converter
-# Note: The basic version works without external dependencies
-# For production use with full conversion capabilities, install these:
 
-# Image processing (for raster conversion)
-# Pillow>=10.0.0
+# Image processing
+Pillow>=10.0.0
 
-# Vector file handling
-# svgwrite>=1.4.3
-# ezdxf>=1.1.0
-# cairosvg>=2.7.0
+# SVG creation and manipulation
+svgwrite>=1.4.3
 
-# For AI/EPS conversion (optional - can use Inkscape CLI instead)
-# reportlab>=4.0.0
+# SVG to PNG conversion
+cairosvg>=2.7.0
+
+# DXF file handling
+ezdxf>=1.1.0
+
+# AI/EPS file handling (requires ImageMagick installed on system)
+Wand>=0.6.13
+
+# Web interface
+Flask>=3.0.0
+
+# For creating executable
+pyinstaller>=6.0.0
+
+# Machine control - Serial/USB communication
+pyserial>=3.5
+
+# Bluetooth device detection and connection (optional - for Bluetooth laser engravers)
+# Note: On Linux, may require: sudo apt-get install libbluetooth-dev
+# On Windows: Requires Microsoft Visual C++ 14.0 or greater
+# pybluez>=0.23  # Uncomment if you have Bluetooth laser engravers
