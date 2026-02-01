@@ -10,6 +10,7 @@ outputs high-definition files, and suggests materials based on use cases.
 import os
 import sys
 import argparse
+import shutil
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 
@@ -114,8 +115,7 @@ class FileConverter:
         
         return info
     
-    def convert_vector_to_svg(self, input_file: str, output_file: str, 
-                             dpi: int = 300) -> bool:
+    def convert_vector_to_svg(self, input_file: str, output_file: str) -> bool:
         """
         Convert vector formats to high-definition SVG.
         
@@ -199,7 +199,6 @@ class FileConverter:
     
     def _copy_or_optimize_png(self, input_file: str, output_file: str) -> bool:
         """Copy PNG file (in production, would optimize)."""
-        import shutil
         shutil.copy2(input_file, output_file)
         print(f"✓ PNG file prepared: {output_file}")
         return True
@@ -363,7 +362,7 @@ Supported Input Formats:
         print(f"Output File: {args.output}\n")
         
         if info['is_vector']:
-            converter.convert_vector_to_svg(args.input, args.output, dpi=args.dpi)
+            converter.convert_vector_to_svg(args.input, args.output)
         else:
             converter.convert_raster_to_png(args.input, args.output, 
                                            target_dpi=args.dpi,
