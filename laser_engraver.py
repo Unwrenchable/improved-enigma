@@ -11,7 +11,7 @@ import os
 import sys
 import argparse
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 
 
 class MaterialSuggestion:
@@ -46,7 +46,7 @@ class MaterialSuggestion:
     }
     
     @classmethod
-    def suggest(cls, use_case: str) -> Dict[str, any]:
+    def suggest(cls, use_case: str) -> Dict[str, Any]:
         """Suggest materials based on use case."""
         use_case_lower = use_case.lower()
         
@@ -96,7 +96,7 @@ class FileConverter:
         ext = Path(file_path).suffix.lower()
         return ext in self.supported_formats
     
-    def get_file_info(self, file_path: str) -> Dict[str, any]:
+    def get_file_info(self, file_path: str) -> Dict[str, Any]:
         """Get information about the input file."""
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"File not found: {file_path}")
