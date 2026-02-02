@@ -509,13 +509,13 @@ footer p {
     /* Better form controls for mobile */
     .form-control {
         padding: 14px;
-        font-size: 16px; /* Prevents zoom on iOS */
+        font-size: 16px; /* Prevents auto-zoom on iOS Safari (zooms when font-size < 16px) */
         min-height: 48px;
     }
 
     .form-control-small {
         padding: 12px;
-        font-size: 16px; /* Prevents zoom on iOS */
+        font-size: 16px; /* Prevents auto-zoom on iOS Safari (zooms when font-size < 16px) */
         min-height: 48px;
     }
 

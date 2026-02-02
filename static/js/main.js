@@ -1,5 +1,8 @@
 // Laser Engraving File Converter - JavaScript
 
+// Constants
+const TOUCH_DEBOUNCE_MS = 100; // Delay to prevent double-triggering from touch-to-click events
+
 let uploadedFile = null;
 let uploadedFilename = null;
 let outputFilename = null;
@@ -30,7 +33,7 @@ function setupEventListeners() {
         // Reset flag after a delay to handle touch-to-click sequence properly
         setTimeout(() => {
             touchHandled = false;
-        }, 100);
+        }, TOUCH_DEBOUNCE_MS);
     });
     uploadArea.addEventListener('dragover', handleDragOver);
     uploadArea.addEventListener('dragleave', handleDragLeave);
