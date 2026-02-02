@@ -33,6 +33,8 @@ function setupEventListeners() {
     
     uploadArea.addEventListener('touchend', function(e) {
         this.classList.remove('drag-over');
+        // Prevent the subsequent click event from being triggered
+        e.preventDefault();
     });
     
     // Conversion mode change
