@@ -5,6 +5,7 @@ let uploadedFilename = null;
 let outputFilename = null;
 let uniqueId = null;
 let multiFormatOutputs = {};
+let touchHandled = false; // Flag to prevent double-triggering on mobile
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -21,7 +22,13 @@ function setupEventListeners() {
     fileInput.addEventListener('change', handleFileSelect);
     
     // Drag and drop (with touch support)
-    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('click', function(e) {
+        // Only trigger if not from a touch event
+        if (!touchHandled) {
+            fileInput.click();
+        }
+        touchHandled = false; // Reset flag
+    });
     uploadArea.addEventListener('dragover', handleDragOver);
     uploadArea.addEventListener('dragleave', handleDragLeave);
     uploadArea.addEventListener('drop', handleDrop);
@@ -33,8 +40,8 @@ function setupEventListeners() {
     
     uploadArea.addEventListener('touchend', function(e) {
         this.classList.remove('drag-over');
-        // Prevent the subsequent click event from being triggered
-        e.preventDefault();
+        touchHandled = true; // Mark that touch was handled
+        // Click event will still fire naturally, opening the file picker
     });
     
     // Conversion mode change
