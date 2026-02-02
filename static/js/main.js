@@ -1,10 +1,14 @@
 // Laser Engraving File Converter - JavaScript
 
+// Constants
+const TOUCH_DEBOUNCE_MS = 100; // Delay to prevent double-triggering from touch-to-click events
+
 let uploadedFile = null;
 let uploadedFilename = null;
 let outputFilename = null;
 let uniqueId = null;
 let multiFormatOutputs = {};
+let touchHandled = false; // Flag to prevent double-triggering on mobile
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -20,11 +24,31 @@ function setupEventListeners() {
     // File input change
     fileInput.addEventListener('change', handleFileSelect);
     
-    // Drag and drop
-    uploadArea.addEventListener('click', () => fileInput.click());
+    // Drag and drop (with touch support)
+    uploadArea.addEventListener('click', function(e) {
+        // Only trigger if not from a touch event
+        if (!touchHandled) {
+            fileInput.click();
+        }
+        // Reset flag after a delay to handle touch-to-click sequence properly
+        setTimeout(() => {
+            touchHandled = false;
+        }, TOUCH_DEBOUNCE_MS);
+    });
     uploadArea.addEventListener('dragover', handleDragOver);
     uploadArea.addEventListener('dragleave', handleDragLeave);
     uploadArea.addEventListener('drop', handleDrop);
+    
+    // Add touch event handling for better mobile experience
+    uploadArea.addEventListener('touchstart', function(e) {
+        this.classList.add('drag-over');
+    });
+    
+    uploadArea.addEventListener('touchend', function(e) {
+        this.classList.remove('drag-over');
+        touchHandled = true; // Mark that touch was handled
+        // Click event will still fire naturally, opening the file picker
+    });
     
     // Conversion mode change
     if (conversionMode) {

@@ -115,6 +115,9 @@ main {
     cursor: pointer;
     background: var(--metal-dark);
     position: relative;
+    /* Better touch interaction */
+    -webkit-tap-highlight-color: rgba(255, 107, 0, 0.2);
+    touch-action: manipulation;
 }
 
 .upload-area::before {
@@ -198,6 +201,10 @@ main {
     color: var(--text-primary);
     font-family: 'Courier New', monospace;
     font-weight: 600;
+    /* Better mobile support */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 
 .form-control:focus {
@@ -234,6 +241,10 @@ main {
     font-family: 'Courier New', monospace;
     position: relative;
     overflow: hidden;
+    /* Better touch interaction */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 44px; /* Minimum touch target size */
 }
 
 .btn::before {
@@ -452,10 +463,94 @@ footer p {
 }
 
 @media (max-width: 768px) {
-    header h1 { font-size: 2rem; }
-    .card { padding: 20px; }
-    .upload-area { padding: 30px 15px; }
-    .outputs-grid { grid-template-columns: 1fr; }
+    body {
+        padding: 10px;
+    }
+
+    header h1 { 
+        font-size: 1.5rem;
+        letter-spacing: 1px;
+    }
+
+    .subtitle {
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+    }
+
+    .card { 
+        padding: 15px; 
+    }
+
+    .upload-area { 
+        padding: 30px 15px; 
+    }
+
+    .upload-icon {
+        font-size: 3rem;
+    }
+
+    .upload-text {
+        font-size: 1.1rem;
+    }
+
+    /* Larger touch targets for mobile */
+    .btn {
+        padding: 16px 24px;
+        font-size: 0.95rem;
+        min-height: 48px;
+    }
+
+    .btn-large {
+        padding: 20px 30px;
+        font-size: 1rem;
+        min-height: 56px;
+    }
+
+    /* Better form controls for mobile */
+    .form-control {
+        padding: 14px;
+        font-size: 16px; /* Prevents auto-zoom on iOS Safari (zooms when font-size < 16px) */
+        min-height: 48px;
+    }
+
+    .form-control-small {
+        padding: 12px;
+        font-size: 16px; /* Prevents auto-zoom on iOS Safari (zooms when font-size < 16px) */
+        min-height: 48px;
+    }
+
+    /* Better spacing on mobile */
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .outputs-grid { 
+        grid-template-columns: 1fr; 
+    }
+
+    /* Improve card readability */
+    .card h2 {
+        font-size: 1.2rem;
+    }
+
+    /* Make file info more readable */
+    .file-info {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+
+    /* Better output cards on mobile */
+    .output-card {
+        padding: 12px;
+    }
+
+    .output-card h3 {
+        font-size: 1rem;
+    }
+
+    .output-card p {
+        font-size: 0.85rem;
+    }
 }
 
 .alert {
@@ -663,6 +758,10 @@ footer p {
     font-family: 'Courier New', monospace;
     font-size: 0.9em;
     text-transform: uppercase;
+    /* Better mobile support */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 
 .form-control-small:focus {
