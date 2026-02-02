@@ -20,11 +20,20 @@ function setupEventListeners() {
     // File input change
     fileInput.addEventListener('change', handleFileSelect);
     
-    // Drag and drop
+    // Drag and drop (with touch support)
     uploadArea.addEventListener('click', () => fileInput.click());
     uploadArea.addEventListener('dragover', handleDragOver);
     uploadArea.addEventListener('dragleave', handleDragLeave);
     uploadArea.addEventListener('drop', handleDrop);
+    
+    // Add touch event handling for better mobile experience
+    uploadArea.addEventListener('touchstart', function(e) {
+        this.classList.add('drag-over');
+    });
+    
+    uploadArea.addEventListener('touchend', function(e) {
+        this.classList.remove('drag-over');
+    });
     
     // Conversion mode change
     if (conversionMode) {
