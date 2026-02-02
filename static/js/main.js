@@ -27,7 +27,10 @@ function setupEventListeners() {
         if (!touchHandled) {
             fileInput.click();
         }
-        touchHandled = false; // Reset flag
+        // Reset flag after a delay to handle touch-to-click sequence properly
+        setTimeout(() => {
+            touchHandled = false;
+        }, 100);
     });
     uploadArea.addEventListener('dragover', handleDragOver);
     uploadArea.addEventListener('dragleave', handleDragLeave);
