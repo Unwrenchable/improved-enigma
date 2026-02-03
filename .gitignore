@@ -110,6 +110,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.local
 .venv
 env/
 venv/
@@ -163,3 +164,19 @@ outputs/
 *.spec
 build/
 dist/
+
+# Node.js / npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.pnpm-debug.log*
+
+# Frontend build
+frontend/dist/
+frontend/.vite/
+frontend/dev-dist/
+
+# Backend
+backend/node_modules/
